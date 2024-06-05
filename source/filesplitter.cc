@@ -1,11 +1,6 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
+#include "filesplitter.h"
 
-const size_t CHUNK_SIZE = 25 * 1024 * 1024; // 25MB max file volume without Discord Nitro
-
-void splitFile(const std::string& filePath) {
+void FileSplitter::splitFile(const std::string& filePath) {
     std::ifstream inputFile(filePath, std::ios::binary);
     if (!inputFile) {
         std::cerr << "Error opening file: " << filePath << std::endl;
@@ -26,7 +21,7 @@ void splitFile(const std::string& filePath) {
     }
 }
 
-void joinFiles(const std::string& outputFilePath, const std::vector<std::string>& chunkPaths) {
+void FileSplitter::joinFiles(const std::string& outputFilePath, const std::vector<std::string>& chunkPaths) {
     std::ofstream outputFile(outputFilePath, std::ios::binary);
 
     for (const auto& chunkPath : chunkPaths) {
@@ -38,15 +33,3 @@ void joinFiles(const std::string& outputFilePath, const std::vector<std::string>
         outputFile << inputFile.rdbuf();
     }
 }
-
-// int main() {
-//     // std::string filePath = "./test.pdf";
-//     // splitFile(filePath);
-//     std::vector<std::string> chunkPaths = {
-//         "./test.pdf.part0",
-//         "./test.pdf.part1",
-//         "./test.pdf.part2"
-//     };
-//     joinFiles("./testrejoined.pdf", chunkPaths);
-//     return 0;
-// }
