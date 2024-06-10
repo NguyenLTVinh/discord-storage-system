@@ -1,7 +1,7 @@
 #include "filesplitter.h"
 
-std::list<std::string> FileSplitter::splitFile(const std::string& filePath) {
-    std::list<std::string> splitted_paths{};
+std::vector<std::string> FileSplitter::splitFile(const std::string& filePath) {
+    std::vector<std::string> splitted_paths{};
     std::ifstream inputFile(filePath, std::ios::binary);
     if (!inputFile) {
         std::cerr << "Error opening file: " << filePath << std::endl;

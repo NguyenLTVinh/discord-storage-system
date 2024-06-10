@@ -33,18 +33,36 @@ void load_env() {
     env_file.close();
 }
 
-void upload_file(dpp::cluster& bot, const dpp::snowflake& channel_id, const std::string& file_path) {
-    std::filesystem::path path(file_path);
-    std::string file_name = path.filename().string();
-    dpp::message msg(channel_id, file_name);
-    msg.add_file(file_name, dpp::utility::read_file(file_path));
-    bot.message_create(msg, [](const dpp::confirmation_callback_t& callback) {
+// int upload_file(dpp::cluster& bot, const dpp::snowflake& channel_id, const std::string& file_path) {
+//     std::filesystem::path path(file_path);
+//     std::string file_name = path.filename().string();
+//     dpp::message msg(channel_id, file_name);
+//     msg.add_file(file_name, dpp::utility::read_file(file_path));
+//     bot.message_create(msg, [](const dpp::confirmation_callback_t& callback) {
+//         if (callback.is_error()) {
+//             std::cerr << "Error sending message: " << callback.get_error().message << std::endl;
+//             return -1;
+//         } else {
+//             std::cout << "Message sent successfully: " << std::get<dpp::message>(callback.value).content << std::endl;
+//             return 0;
+//         }
+//     });
+//     return 0;
+// }
+
+void upload_files(dpp::cluster& bot, const dpp::snowflake& channel_id, const std::vector<std::string>& files, size_t index) {
+    if (index >= files.size()) {
+        return; // All files sent
+    }
+
+    dpp::message msg(channel_id, files[index]);
+    msg.add_file(files[index], dpp::utility::read_file(files[index]));
+
+    bot.message_create(msg, [&bot, &channel_id, &files, index](const dpp::confirmation_callback_t& callback) {
         if (callback.is_error()) {
-            std::cerr << "Error sending message: " << callback.get_error().message << std::endl;
-            exit(1);
+            // Handle error
         } else {
-            std::cout << "Message sent successfully: " << std::get<dpp::message>(callback.value).content << std::endl;
-            exit(0);
+            upload_files(bot, channel_id, files, index + 1);
         }
     });
 }
@@ -78,7 +96,7 @@ int main(int argc, char* argv[]) {
     bot.on_log(dpp::utility::cout_logger());
     dpp::snowflake channel_id(id);
     FileSplitter file_splitter;
-    std::list<std::string> splitted_paths;
+    std::vector<std::string> files_to_send;
 
     if (operation == "upload") {
         std::string file_path = argv[2];
@@ -87,12 +105,10 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        splitted_paths = file_splitter.splitFile(file_path);
-        for (auto p : splitted_paths) {
-            std::cout << p << ' ';
-        }
-        bot.on_ready([&bot, &channel_id, &splitted_paths](const dpp::ready_t& event) {
-            upload_file(bot, channel_id, splitted_paths.front());
+        files_to_send = file_splitter.splitFile(file_path);
+        // files_to_send = std::vector<std::string>{"./test.pdf.part0", "./test.pdf.part1", "./test.pdf.part2", "./test.pdf.part3"};
+        bot.on_ready([&bot, &channel_id, files_to_send](const dpp::ready_t& event) {
+            upload_files(bot, channel_id, files_to_send, 0);
         });
 
     } else if (operation == "download") {
