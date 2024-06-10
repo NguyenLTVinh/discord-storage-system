@@ -37,7 +37,7 @@ void upload_file(dpp::cluster& bot, const dpp::snowflake& channel_id, const std:
     std::filesystem::path path(file_path);
     std::string file_name = path.filename().string();
     dpp::message msg(channel_id, file_name);
-    msg.add_file(file_path, dpp::utility::read_file(file_path));
+    msg.add_file(file_name, dpp::utility::read_file(file_path));
     bot.message_create(msg, [](const dpp::confirmation_callback_t& callback) {
         if (callback.is_error()) {
             std::cerr << "Error sending message: " << callback.get_error().message << std::endl;
@@ -77,6 +77,8 @@ int main(int argc, char* argv[]) {
     dpp::cluster bot(bot_token);
     bot.on_log(dpp::utility::cout_logger());
     dpp::snowflake channel_id(id);
+    FileSplitter file_splitter;
+    std::list<std::string> splitted_paths;
 
     if (operation == "upload") {
         std::string file_path = argv[2];
@@ -85,8 +87,12 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        bot.on_ready([&bot, &channel_id, file_path](const dpp::ready_t& event) {
-            upload_file(bot, channel_id, file_path);
+        splitted_paths = file_splitter.splitFile(file_path);
+        for (auto p : splitted_paths) {
+            std::cout << p << ' ';
+        }
+        bot.on_ready([&bot, &channel_id, &splitted_paths](const dpp::ready_t& event) {
+            upload_file(bot, channel_id, splitted_paths.front());
         });
 
     } else if (operation == "download") {

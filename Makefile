@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAGS = -Wall -Iincludes
+CXXFLAGS = -Wall -Iincludes -I/usr/include
+LDFLAGS = -ldpp
 
 TARGET = app
 
@@ -8,7 +9,7 @@ MAIN = main.cc
 OBJECTS = $(SOURCES:.cc=.o) $(MAIN:.cc=.o)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -c $< -o $@
